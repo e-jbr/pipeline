@@ -1,0 +1,26 @@
+variables:
+  nom_image: webapp
+  tag_image: python-1.1
+
+stages:
+  - build
+  - deploy
+
+build_image:
+  stage: build
+  before_script:
+    - chmod 400 $SSH_PRIVATE_KEY
+  script:
+    - apt-get update && apt-get upgrade -y && apt-get install openssh-server -y
+    - ssh -o StrictHostKeyChecking=no -p 2222 -i $SSH_PRIVATE_KEY root@172.17.155.219 "
+      cd ./firstpipeline && docker build -t $nom_image:$tag_image ."
+
+deploy_container:
+  stage: deploy
+  before_script:
+    - chmod 400 $SSH_PRIVATE_KEY
+  script:
+    - apt-get update && apt-get upgrade -y && apt-get install openssh-server -y
+    - ssh -o StrictHostKeyChecking=no -p 2222 -i $SSH_PRIVATE_KEY root@172.17.155.219 "
+      docker rm -f $nom_image &&
+      docker run -d --name $nom_image -p 8080:8080 $nom_image:$tag_image"
