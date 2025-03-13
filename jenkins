@@ -1,0 +1,21 @@
+pipeline {
+    agent any
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
+    }
+
+    stages {
+        stage('Login') {
+            steps {
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                sh 'docker pull sipth/test:latest'
+            }
+        }
+        stage('Swarm Operations') {
+            steps { 
+                sh 'docker service create --name web_service --publish 8123:80 sipth/test:latest'
+                sh 'curl http://10.0.20.116:8123/'
+            }
+        }
+    }
+}
